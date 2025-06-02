@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { addtodo } from '../features/todoSlice';
-
+import './addTodo.css';
 export default function Todos() {
   const [input, setInput] = useState('');
   const dispatch = useDispatch();
@@ -27,3 +27,4 @@ export default function Todos() {
     </>
   );
 }
+
