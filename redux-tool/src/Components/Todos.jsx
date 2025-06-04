@@ -1,12 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { edittodo, removetodo } from '../features/todoSlice';
+import {  removetodo } from '../features/todoSlice';
+import EditTodoModal from './EditTodoModal';
 
 export default function Todos() {
+    const [modalOpen, setModalOpen] = useState(false);
+    const[editdata,seteditdata]=useState();
+  
   const todos = useSelector((state) => state.todo.todos);
   const dispatch = useDispatch();
 
-  
+  const onEditClick=(item)=>{
+      seteditdata(item);
+      setModalOpen(true);
+  }
 
   return (
     <div>
@@ -28,12 +35,17 @@ export default function Todos() {
               <td>{todo.status}</td>
               <td>
                 <button onClick={() => dispatch(removetodo(todo.id))}>Delete</button>
-                <button onClick={() => dispatch(edittodo(todo.id))}>Edit</button>
+                <button onClick={() => onEditClick(todo)}>Edit</button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+      <EditTodoModal
+        modalOpen={modalOpen}
+        editdata={editdata}
+        setModalOpen={setModalOpen}
+      />
     </div>
   );
 }

@@ -1,25 +1,28 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { addtodo } from '../features/todoSlice';
-// import './addTodo.css';
+import { addtodo ,edittodo} from '../features/todoSlice';
+import Todos from './Todos';
 
-export default function Todos() {
+export default function Todo() {
   const [modalOpen, setModalOpen] = useState(false);
   const [taskName, setTaskName] = useState('');
   const [priority, setPriority] = useState('Low');
   const [status, setStatus] = useState('Todo');
+  const [isEdit, setIsEdit] = useState(false);   
+  const [editId, setEditId] = useState(null);    
+
   const dispatch = useDispatch();
 
 
   const handleAddTodo = (e) => {
     e.preventDefault();
-     const newTodo = {
-     text: taskName,
-     priority,
-     status,
-      };
-
-    dispatch(addtodo(newTodo));
+    const payload = { id: editId, text: taskName, priority, status };
+  
+  if (isEdit) {
+    dispatch(edittodo(payload));  
+  } else {
+    dispatch(addtodo(payload));    
+  }
     setTaskName('');
     setPriority('');
     setModalOpen(false);
@@ -76,8 +79,8 @@ export default function Todos() {
 
            
 
-            <div className="modal-buttons">
-              <button type="submit">Add Task</button>
+             <div className="modal-buttons">
+             <button type="submit">{isEdit ? 'Update Task' : 'Add Task'}</button>
               <button type="button" onClick={() => setModalOpen(false)}>Cancel</button>
             </div>
           </form>
