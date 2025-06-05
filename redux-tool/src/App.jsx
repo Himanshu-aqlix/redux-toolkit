@@ -1,16 +1,26 @@
 import './App.css'
+import 'bootstrap/dist/css/bootstrap.min.css'
+import { Container, Row, Col } from 'react-bootstrap'
 import Todos from './Components/Todos'
-import  Addtodo  from './Components/addTodo'
-
+import Addtodo from './Components/addTodo'
 
 function App() {
   return (
-    <>
-      <h1 style={{ color: "black", textDecoration: "underline", marginBottom: "40px" }}> Advance TODOS with Redux</h1>
-
-      <Addtodo />
-      <Todos/>
-    </>
+    <Container fluid className="app-container">
+      <Row className="justify-content-center">
+        <Col lg={10} xl={8}>
+          <div className="app-header">
+            <h1 className="app-title">Manage your Todoz</h1>
+            <p className="app-subtitle">Organize your tasks with priority</p>
+          </div>
+          
+          <div className="main-content">
+            <Addtodo />
+            <Todos />
+          </div>
+        </Col>
+      </Row>
+    </Container>
   )
 }
 

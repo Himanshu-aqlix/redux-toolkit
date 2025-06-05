@@ -1,91 +1,158 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { addtodo ,edittodo} from '../features/todoSlice';
-import Todos from './Todos';
+import { addTodo, setLoading, setError } from '../features/todoSlice';
+import { taskAPI } from '../services/api';
+import Modal from 'react-modal';
+import { Button } from 'react-bootstrap';
 
-export default function Todo() {
+Modal.setAppElement('#root');
+
+const modalStyles = {
+  overlay: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    zIndex: 1000
+  },
+  content: {
+    top: '50%',
+    left: '50%',
+    right: 'auto',
+    bottom: 'auto',
+    marginRight: '-50%',
+    transform: 'translate(-50%, -50%)',
+    border: 'none',
+    borderRadius: '12px',
+    padding: '0',
+    maxWidth: '500px',
+    width: '90%',
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
+  }
+};
+
+export default function AddTodo() {
   const [modalOpen, setModalOpen] = useState(false);
   const [taskName, setTaskName] = useState('');
   const [priority, setPriority] = useState('Low');
   const [status, setStatus] = useState('Todo');
-  const [isEdit, setIsEdit] = useState(false);   
-  const [editId, setEditId] = useState(null);    
 
-  const dispatch = useDispatch();
-
-
-  const handleAddTodo = (e) => {
+  const dispatch = useDispatch();  const handleAddTodo = async (e) => {
     e.preventDefault();
-    const payload = { id: editId, text: taskName, priority, status };
-  
-  if (isEdit) {
-    dispatch(edittodo(payload));  
-  } else {
-    dispatch(addtodo(payload));    
-  }
-    setTaskName('');
-    setPriority('');
-    setModalOpen(false);
-    setStatus("");
+    if (!taskName.trim()) return;
+    
+    const payload = { text: taskName, priority, status };
+    
+    try {
+      dispatch(setLoading(true));
+      const response = await taskAPI.createTask(payload);
+      dispatch(addTodo(response.data));
+      
+      setTaskName('');
+      setPriority('Low');
+      setStatus('Todo');
+      setModalOpen(false);
+    } catch (error) {
+      dispatch(setError(error.response?.data?.message || 'Failed to create task'));
+    } finally {
+      dispatch(setLoading(false));
+    }
   };
+  const statusOptions = [
+    { value: 'Todo', label: 'Todo' },
+    { value: 'InProgress', label: 'In Progress' },
+    { value: 'Complete', label: 'Complete' },
+    { value: 'Invalid', label: 'Invalid' }
+  ];
 
   return (
     <>
-      <button className="addtodo  " onClick={() => setModalOpen(true)}>Add Todo</button>
+      <div className="add-todo-container"> 
+               <Button 
+          className="add-todo-btn" 
+          onClick={() => setModalOpen(true)}
+        >
+          Add New Task
+        </Button>
+      </div>
 
-      {modalOpen && (
-        <div className="modal">
-          <form onSubmit={handleAddTodo} className="modal-content">
-            <h2 style={{color:'black'}}>Add New Task</h2>
-
-            <label style={{color:'black'}}>Task Name:-</label>
-            <input
-               
-              type="text"
-              value={taskName}
-              onChange={(e) => setTaskName(e.target.value)}
-              required
-            />
-
-            <label style={{color:'black'}}>Priority:-</label>
-            <select value={priority} onChange={(e) => setPriority(e.target.value)}>
-              <option value="Low">🟢 Low</option>
-             <option value="Medium">🟡 Medium</option>
-             <option value="High">🔴 High</option>
-            </select>
-            
-            <label style={{color:'black'}}>Status:-</label>
-             <div className="status-options">
-             <label >
-             <input type="checkbox" checked={status === 'Todo'} onChange={() => setStatus('Todo')}   />
-             Todo
-            </label>
-
-            <label>
-            <input type="checkbox" checked={status === 'InProgress'} onChange={() => setStatus('InProgress')} />
-             InProgress
-            </label>
-
-            <label>
-            <input  type="checkbox" checked={status === 'Complete'} onChange={() => setStatus('Complete')}  />
-             Complete
-            </label>
-
-            <label>
-            <input type="checkbox" checked={status === 'Invalid'} onChange={() => setStatus('Invalid')}/>
-            Invalid
-            </label>
-            </div>
-
-           
-
-             <div className="modal-buttons">
-             <button type="submit">{isEdit ? 'Update Task' : 'Add Task'}</button>
-              <button type="button" onClick={() => setModalOpen(false)}>Cancel</button>
-            </div>
-          </form>
+      <Modal
+        isOpen={modalOpen}
+        onRequestClose={() => setModalOpen(false)}
+        style={modalStyles}
+        contentLabel="Add New Task Modal"
+      >
+        <div className="modal-header">
+          <h2 className="modal-title">Add New Task</h2>
+          <button 
+            className="modal-close" 
+            onClick={() => setModalOpen(false)}
+            type="button"
+          >
+            ×
+          </button>
         </div>
-      )}
+
+        <form onSubmit={handleAddTodo}>
+          <div className="modal-body">
+            <div className="form-group">
+              <label className="form-label">Task Name</label>
+              <input
+                type="text"
+                className="form-control"
+                value={taskName}
+                onChange={(e) => setTaskName(e.target.value)}
+                placeholder="Enter task description..."
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Priority</label>              <select 
+                className="form-select" 
+                value={priority} 
+                onChange={(e) => setPriority(e.target.value)}
+              >
+                <option value="Low">Low Priority</option>
+                <option value="Medium">Medium Priority</option>
+                <option value="High">High Priority</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Status</label>
+              <div className="status-options">
+                {statusOptions.map((option) => (
+                  <div 
+                    key={option.value}
+                    className={`status-option ${status === option.value ? 'selected' : ''}`}
+                    onClick={() => setStatus(option.value)}
+                  >
+                    <input
+                      type="radio"
+                      name="status"
+                      value={option.value}
+                      checked={status === option.value}
+                      onChange={() => setStatus(option.value)}
+                    />
+                    <label>{option.label}</label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="modal-footer">
+            <button 
+              type="button" 
+              className="btn-secondary" 
+              onClick={() => setModalOpen(false)}
+            >
+              Cancel
+            </button>
+            <button type="submit" className="btn-primary">
+              Add Task
+            </button>
+          </div>
+        </form>
+      </Modal>
     </>
   );
 }
