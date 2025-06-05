@@ -1,45 +1,41 @@
-import { createSlice, nanoid } from "@reduxjs/toolkit";
-
+import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  todos: [{ id: 1, text: "hello world", priority: "Low" }]
+  todos: [],
+  loading: false,
+  error: null
 };
 
 export const todoSlice = createSlice({
   name: 'todo',
   initialState,
   reducers: {
-    
-    addtodo: (state, action) => {
-      const todo = {
-        id: nanoid(),
-        text: action.payload.text,
-        priority: action.payload.priority,
-        status:action.payload.status
-      };
-      state.todos.push(todo);
+    setLoading: (state, action) => {
+      state.loading = action.payload;
     },
-
-   
-    removetodo: (state, action) => {
-      state.todos = state.todos.filter((todo) => todo.id !== action.payload);
+    setError: (state, action) => {
+      state.error = action.payload;
     },
-
-   
-   edittodo: (state, action) => {
-  const { id, text, priority, status } = action.payload;
-  const todo = state.todos.find(t => t.id === id);
-  if (todo) {
-    todo.text     = text;
-    todo.priority = priority;
-    todo.status   = status;
-  }
-}
+    clearError: (state) => {
+      state.error = null;
+    },
+    setTodos: (state, action) => {
+      state.todos = action.payload;
+    },
+    addTodo: (state, action) => {
+      state.todos.unshift(action.payload);
+    },
+    updateTodo: (state, action) => {
+      const index = state.todos.findIndex(todo => todo._id === action.payload._id);
+      if (index !== -1) {
+        state.todos[index] = action.payload;
+      }
+    },
+    deleteTodo: (state, action) => {
+      state.todos = state.todos.filter(todo => todo._id !== action.payload);
+    }
   }
 });
 
-
-export const { addtodo, removetodo, edittodo } = todoSlice.actions;
-
-
+export const { setLoading, setError, clearError, setTodos, addTodo, updateTodo, deleteTodo } = todoSlice.actions;
 export default todoSlice.reducer;
